@@ -1,0 +1,500 @@
+
+<!DOCTYPE html>
+<html>
+
+<head>
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-V3D20SW4N4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-V3D20SW4N4');
+</script>
+	
+	<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+	<title>FreeNeRF: Frequency-regularized NeRF</title>
+  <link rel="stylesheet" href="assets/css/Highlight-Clean.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script type="module" src="https://unpkg.com/@google/model-viewer@2.0.1/dist/model-viewer.min.js"></script>
+  <link rel="manifest" href="site.webmanifest">
+
+  <meta property="og:site_name" content="FreeNeRF" />
+  <meta property="og:type" content="video.other" />
+  <meta property="og:title" content="FreeNeRF: Improving Few-shot Neural Rendering with Free Frequency Regularization" />
+  <meta property="og:description" content="FreeNeRF: Improving Few-shot Neural Rendering with Free Frequency Regularization, 2022." />
+  <script type="module" src="https://unpkg.com/@google/model-viewer@2.0.1/dist/model-viewer.min.js"></script>
+
+  <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+  <link rel="stylesheet" href="assets/css/codemirror.min.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+
+  <script src="assets/js/jquery.min.js"></script>
+  <script src="assets/js/bootstrap.min.js"></script>
+  <script src="assets/js/codemirror.min.js"></script>
+  <script src="assets/js/clipboard.min.js"></script>
+  <script src="assets/js/video_comparison.js"></script>
+  <script src="assets/js/app.js"></script>
+
+</head>
+
+<body>
+    <div class="highlight-clean" style="padding-bottom: 10px;">
+	<div class="container" style="max-width: 868px;">
+    <div class="row" id="title-row" style="max-width: 100%; margin: 0 auto; display: inline-block">
+        <h1 class="col-md-12 text-center" id="title">
+          <b>FreeNeRF</b>: Improving Few-shot Neural Rendering with Free Frequency Regularization <br>
+            <small>
+                CVPR 2023
+            </small>
+        </h1>
+    </div>
+	</div>
+	<div class="container" style="max-width: 868px;">
+		<div class="row" id="author-row" style="margin:0 auto;">
+      <div class="col-md-12 text-center" style="display: table; margin:0 auto">
+          <table class="author-table" id="author-table">
+              <tr>
+                  <td>
+                      <a style="text-decoration:none" href="https://jiawei-yang.github.io/">
+                        Jiawei Yang
+                      </a>
+                      <br>UC, Los Angeles
+                  </td>
+                  <td>
+                      <a style="text-decoration:none" href="https://web.stanford.edu/~pavone/index.html">
+                        Marco Pavone
+                      </a>
+                      <br>Nvidia Research<br>
+                      Stanford University
+                  </td>
+                  <td>
+                      <a style="text-decoration:none" href="https://yuewang.xyz/">
+                       Yue Wang
+                      </a>
+                      <br>Nvidia Research
+                  </td>
+              </tr>
+          </table>
+      </div>
+  </div>   
+	</div>
+  <div class="row">
+    <div class="col-sm-6 col-sm-offset-3 text-center">
+        <ul class="nav nav-pills nav-justified">
+            <li>
+                <a href="https://jiawei-yang.github.io/freenerf">
+                <img src="./resources/paper.png" height="60px">
+                    <h4><strong>Paper</strong></h4>
+                </a>
+            </li>
+            <li>
+                <a href="https://github.com/Jiawei-Yang/FreeNeRF" target="_blank">
+                <img src="./resources/github.png" height="60px">
+                    <h4><strong>Code</strong></h4>
+                </a>
+            </li>
+        </ul>
+    </div>
+  </div>
+    </div>
+    <div class="row">
+      <div class="col-md-8 col-md-offset-2">
+        <image src="./resources/teaser.png" class="img-responsive" alt="overview" width="60%" style="width: 850px;margin:auto;">
+    </div>
+  </div>
+    <hr class="divider" />
+    <div class="container" style="max-width: 868px;">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Abstract</h2>
+                <p class="text-justify">
+                    Novel view synthesis with sparse inputs is a challenging problem for neural radiance fields (NeRF). 
+					Recent efforts alleviate this challenge by introducing external supervision, such as pre-trained models and extra depth signals, and by non-trivial patch-based rendering. 
+					In this paper, we present <strong>Fre</strong>qu<strong>e</strong>ncy regularized <strong>NeRF</strong> (<strong>FreeNeRF</strong>), a surprisingly simple baseline that outperforms previous methods with minimal modifications to the plain NeRF. 
+					We analyze the key challenges in few-shot neural rendering and find that frequency plays an important role in NeRF's training. 
+					Based on the analysis, we propose two regularization terms. One is to regularize the frequency range of NeRF's inputs, while the other is to penalize the near-camera density fields. 
+					Both techniques are ``free lunches'' at no additional computational cost. 
+					We demonstrate that even with one line of code change, the original NeRF can achieve similar performance as other complicated methods in the few-shot setting.
+					FreeNeRF achieves state-of-the-art performance across diverse datasets, including Blender, DTU, and LLFF. 
+					We hope this simple baseline will motivate a rethinking of the fundamental role of frequency in NeRF's training under the low-data regime and beyond.
+          </p>
+				<h3>TL;DR:</h3>
+        <p class="text-justify">
+              We use frequency regularization and occlusion regularization to improve few-shot neural rendering. Both techniques can be implemented with a few lines of code.
+        </p>
+        </div>
+        </div>
+    </div>
+  <hr class="divider" />
+    <div class="container" style="max-width: 868px;">
+        <div class="row">
+            <div class="col-sm-12">
+                <h2>Example novel view synthesis results</h2>
+                <p>FreeNeRF enables view synthesis from sparse inputs with as few as 3 input images, <em>by adding a few lines of code</em>.</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>mipNeRF RGB</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/mipnerf/n3scan82.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+                <span>mipNeRF Depth</span>
+                <div class="embed-responsive embed-responsive-4by3">
+                  <video loop muted autoplay class="embed-responsive-item">
+                    <source src="assets/videos/comparisons/mipnerf/n3scan82_depth_median.mp4" type="video/mp4">
+                  </video>
+                </div>
+              </div>
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>Ours RGB</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/ours/n3scan82.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>Ours Depth</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/ours/n3scan82_depth_median.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+        </div>
+        <!-- <div class="row">
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>mipNeRF RGB</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/mipnerf/n3scan103.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+                <span>mipNeRF Depth</span>
+                <div class="embed-responsive embed-responsive-4by3">
+                  <video loop muted autoplay class="embed-responsive-item">
+                    <source src="assets/videos/comparisons/mipnerf/n3scan103_depth_median.mp4" type="video/mp4">
+                  </video>
+                </div>
+              </div>
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>Ours RGB</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/ours/n3scan103.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>Ours Depth</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/ours/n3scan103_depth_median.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+        </div> -->
+        <div class="row">
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>mipNeRF RGB</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/mipnerf/n3scan21.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+                <span>mipNeRF Depth</span>
+                <div class="embed-responsive embed-responsive-4by3">
+                  <video loop muted autoplay class="embed-responsive-item">
+                    <source src="assets/videos/comparisons/mipnerf/n3scan21_depth_median.mp4" type="video/mp4">
+                  </video>
+                </div>
+              </div>
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>Ours RGB</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/ours/n3scan21.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>Ours Depth</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/ours/n3scan21_depth_median.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+        </div>
+        <!-- <div class="row">
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>mipNeRF RGB</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/mipnerf/n3scan40.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+                <span>mipNeRF Depth</span>
+                <div class="embed-responsive embed-responsive-4by3">
+                  <video loop muted autoplay class="embed-responsive-item">
+                    <source src="assets/videos/comparisons/mipnerf/n3scan40_depth_median.mp4" type="video/mp4">
+                  </video>
+                </div>
+              </div>
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>Ours RGB</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/ours/n3scan40.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>Ours Depth</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/ours/n3scan40_depth_median.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+        </div> -->
+        <div class="row">
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>mipNeRF RGB</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/mipnerf/n3flower.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+                <span>mipNeRF Depth</span>
+                <div class="embed-responsive embed-responsive-4by3">
+                  <video loop muted autoplay class="embed-responsive-item">
+                    <source src="assets/videos/comparisons/mipnerf/n3flower_depth_median.mp4" type="video/mp4">
+                  </video>
+                </div>
+              </div>
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>Ours RGB</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/ours/n3flower.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>Ours Depth</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/ours/n3flower_depth_median.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>mipNeRF RGB</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/mipnerf/n3room.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+                <span>mipNeRF RGB</span>
+                <div class="embed-responsive embed-responsive-4by3">
+                  <video loop muted autoplay class="embed-responsive-item">
+                    <source src="assets/videos/comparisons/mipnerf/n3horns.mp4" type="video/mp4">
+                  </video>
+                </div>
+              </div>
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>Ours RGB</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/ours/n3room.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+            
+            <div class="col-md-3 col-sm-3 col-xs-12 gallery center-block text-center">
+              <span>Ours RGB</span>
+              <div class="embed-responsive embed-responsive-4by3">
+                <video loop muted autoplay class="embed-responsive-item">
+                  <source src="assets/videos/comparisons/ours/n3horns.mp4" type="video/mp4">
+                </video>
+              </div>
+            </div>
+        </div>
+    </div>
+    <hr class="divider" />
+    <div class="container" style="max-width: 868px;">
+        <div class="row">
+            <div class="col-md-12">
+              <h2>More Results</h2>
+              <p>For more results, check out: <a href="comparisons.html" target="_blank">Comparison to others</a> </p>
+            </div>
+        </div>
+	  </div>
+    <hr class="divider" />
+    <div class="container" style="max-width: 868px;">
+        <div class="row">
+            <div class="col-md-12">
+              <h2>How does FreeNeRF work?</h2>
+                *click to expand 
+                <details>
+                  <summary>
+                    <h4>1. High-frequency signals cause catastrophic overfitting in few-shot neural rendering.</h4>
+                  </summary>
+                  <br>
+                <p class="text-justify">
+                  Neural rendering methods, such as NeRF, can learn 3D scene representations from a set of 2D images without explicit 3D geometry. 
+                  Instead, the 3D geometry is implicitly learned by optimizing appearance in its 2D projected views.
+                  However, when given only very few input views, NeRF can easily overfit to these
+                  Given only very few input views, NeRF is prone to overfitting to these 2D images with small loss while not explaining the 3D geometry in a multi-view consistent way.
+                  <br><br>
+                  This issue of overfitting in few-shot neural rendering is further exacerbated by the presence of high-frequency signals in the input positional encoding.
+                  A previous study shows that higher-frequency mappings enable faster convergence for high-frequency components.
+                  However, the over-fast convergence to high-frequency components will lead to catastrophic overfitting in few-shot neural rendering. <br><br>
+                  To test this, we conducted an experiment in which we trained NeRF models with masked positional encodings by setting the high-frequency bits to zero: <br></p>
+                  <p class="text-center">
+                    pos_enc[int(L * x%): ] = 0, <br></p>
+                  <p class="text-justify">
+                  where L is the length of the positional encoding and x is the visible ratio.<br><br>
+
+                  The following videos show the negative impact of high-frequency signals on NeRF's performance in few-shot neural rendering, resulting in severe overfitting. 
+                  While using only low-frequency inputs allows NeRF to learn 3D scene representations, the resulting models may still exhibit oversmoothness. 
+                  These results highlight the importance of addressing the overfitting issue from the frequency domain in order to improve the accuracy of 3D scene representations and mitigate the issue of oversmoothness.
+                </p>
+                <div class="row">
+                  <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="embed-responsive embed-responsive-4by3">
+                      <video controls loop muted autoplay class="embed-responsive-item">
+                        <source src="assets/videos/example.mp4" type="video/mp4">
+                      </video>
+                    </div>
+                    <p class="text-center" style="font-size: 1em;">
+                      High-frequency inputs cause the catastrophic failure in few-shot neural rendering.
+                    </p>
+                  </div>
+                </div>
+              </details>
+              
+              <details>
+                <summary>
+                  <h4>2. Frequency regularization enjoys the benefits of both high-frequency and low-frequency signals.</h4>
+                </summary>
+                  <br>
+                  <p class="text-justify">
+                  We propose <em>Frequency Regularization</em>. 
+                  Given a positional encoding, we use a linearly increased frequency mask to regularize the visible frequency spectrum based on training time steps, as described in Equations 4 and 5 of the paper. 
+                  <br><br>
+                  The following figure shows how frequency mask changes over the training step. We use 50%-schedule as an example, i.e., all inputs become visible at the midpoint of training.
+                  By gradually increasing the visibility of the high-frequency signals, Frequency Regularization helps to reduce the risk of overfitting that causes catastrophic failure at the beginning and avoids underfitting that causes over-smoothness at the end. <br><br>                  <image src="resources/freq.png" class="img-responsive" width="100%" style="max-height: 450px;margin:auto;"></image>
+                  <p class="text-center" style="font-size: 1em;">
+                    Frequency mask changes over the training step.</p>
+                  <br>
+                  The following videos show two examples. NeRF models first learn the smooth and coarse 3D scene representations with only low-frequency signals.
+                  As the training step increases, more high-frequency signals become visible, and the model learns more accurate 3D scene representations with both high-frequency and low-frequency signals.
+                  <div class="embed-responsive embed-responsive-4by3">
+                    <video loop muted autoplay class="embed-responsive-item" playbackRate=0.5>
+                      <source src="assets/videos/example/8views.mp4" type="video/mp4">
+                    </video>
+                  </div>
+                  <p class="text-center" style="font-size: 1em;">
+                    ------------------>>------------------>>------------------ Training steps ------------------>>------------------>>------------------
+                  </p>
+                </p>
+              </details>
+              <details>
+                <summary>
+                  <h4>3. Occlusion regularization addresses the near-camera floaters.</h4>
+                </summary>
+                  <br>
+                  <p class="text-justify">
+                  Despite the use of Frequency Regularization, some characteristic artifacts may still appear in certain novel views due to the limited number of training views and the inherent ill-posedness of the problem. These artifacts often manifest as "walls" or "floaters" that are close to the camera and can significantly degrade the quality of the 3D scene representations. <br><br>
+
+                  To address this issue, we propose a new method called <em>Occlusion Regularization</em>, which penalizes the dense fields near the camera as described in Equation 6 of the paper. By reducing the influence of these dense fields, Occlusion Regularization helps to improve the accuracy and realism of the 3D scene representations, as shown in the visual comparisons below between models without (left) and with (right) occlusion regularization. 
+                  <div class="col-md-6 col-sm-6 col-xs-12 gallery center-block text-center">
+                    <image src="assets/videos/example/8.gif" class="img-responsive" width="100%" style="max-height: 450px;margin:auto;"></image>
+                  </div>
+                  <div class="col-md-6 col-sm-6 col-xs-12 gallery center-block text-center">
+                    <image src="assets/videos/example/21.gif" class="img-responsive" width="100%" style="max-height: 450px;margin:auto;"></image>
+                  </div>
+                  <div class="col-md-6 col-sm-6 col-xs-12 gallery center-block text-center">
+                    <image src="assets/videos/example/30.gif" class="img-responsive" width="100%" style="max-height: 450px;margin:auto;"></image>
+                  </div>
+                  <div class="col-md-6 col-sm-6 col-xs-12 gallery center-block text-center">
+                    <image src="assets/videos/example/38.gif" class="img-responsive" width="100%" style="max-height: 450px;margin:auto;"></image>
+                  </div>
+                </p>
+              </details>
+
+                
+            </div>
+        </div>
+	  </div>  
+	<hr class="divider" />
+    <div class="container" style="max-width: 868px;">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Citation</h2>
+                Consider citing us if you find this project is helpful. <br>
+                <code>
+                    @article{yang2022freenerf,<br>
+                    &nbsp; author = {Jiawei Yang and Marco Pavone and Yue Wang},<br>
+                    &nbsp; title  = {FreeNeRF: Improving Few-shot Neural Rendering with Free Frequency Regularization},<br>
+                    &nbsp; joural = {Proceedings of the IEEE/CVF International Conference on Computer Vision (CVPR)},<br>
+                    &nbsp; year   = {2023},<br>
+                }</code></div>
+        </div>
+    </div>
+
+    <hr class="divider" />
+    <div class="container" style="max-width: 868px;">
+      <div class="row">
+          <div class="col-md-12">
+              <h2>Acknowledgement</h2>
+              <p>This webpage integrates components from many websites, including <a href="https://dorverbin.github.io/refnerf/">RefNeRF</a>, <a href="https://m-niemeyer.github.io/regnerf/">RegNeRF</a>, <a href="https://dreamfusion3d.github.io/">DreamFusion</a>, and <a href="https://richzhang.github.io/webpage-template/">Richard Zhang's template</a>.
+                We sincerely thank the authors for their great work and websites.</p>
+                <br></p>
+            </div>
+          </div>
+    </div>
+
+    <script src="https://polyfill.io/v3/polyfill.js?features=IntersectionObserver"></script>
+    <script src="/assets/js/yall.js"></script>
+    <script>
+        yall(
+            {
+                observeChanges: true
+            }
+        );
+    </script>
+    <script src="/assets/js/scripts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://uploads-ssl.webflow.com/51e0d73d83d06baa7a00000f/js/webflow.fd002feec.js"></script>
+    <!-- Import the component -->
+</body>
+
+</html>

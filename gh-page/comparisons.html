@@ -1,0 +1,617 @@
+
+<!doctype html>
+<html lang="en">
+
+<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+	<title>FreeNeRF: Frequency-regularized NeRF</title>
+  <link rel="stylesheet" href="assets/css/Highlight-Clean.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script type="module" src="https://unpkg.com/@google/model-viewer@2.0.1/dist/model-viewer.min.js"></script>
+  <link rel="manifest" href="site.webmanifest">
+
+  <meta property="og:site_name" content="FreeNeRF" />
+  <meta property="og:type" content="video.other" />
+  <meta property="og:title" content="FreeNeRF: Improving Few-shot Neural Rendering with Free Frequency Regularization" />
+  <meta property="og:description" content="FreeNeRF: Improving Few-shot Neural Rendering with Free Frequency Regularization, 2022." />
+  <script type="module" src="https://unpkg.com/@google/model-viewer@2.0.1/dist/model-viewer.min.js"></script>
+
+  <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+  <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+  <link rel="stylesheet" href="assets/css/codemirror.min.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+
+  <script src="assets/js/jquery.min.js"></script>
+  <script src="assets/js/bootstrap.min.js"></script>
+  <script src="assets/js/codemirror.min.js"></script>
+  <script src="assets/js/clipboard.min.js"></script>
+  <script src="assets/js/video_comparison.js"></script>
+  <script src="assets/js/app.js"></script>
+
+</head>
+
+<body>
+    <div class="highlight-clean" style="padding-bottom: 10px;">
+      <div class="container" style="max-width: 868px;">
+        <h1 class="col-md-12 text-center" id="title">
+            <b>FreeNeRF</b>: Improving Few-shot Neural Rendering with Free Frequency Regularization <br>
+              <small>
+                  CVPR 2023
+              </small>
+          </h1>
+    </div>
+    <div class="container" style="max-width: 868px;">
+      <div class="row" id="author-row" style="margin:0 auto;">
+        <div class="col-md-12 text-center" style="display: table; margin:0 auto">
+            <table class="author-table" id="author-table">
+                <tr>
+                    <td>
+                        <a style="text-decoration:none" href="https://jiawei-yang.github.io/">
+                          Jiawei Yang
+                        </a>
+                        <br>UC, Los Angeles
+                    </td>
+                    <td>
+                        <a style="text-decoration:none" href="https://web.stanford.edu/~pavone/index.html">
+                          Marco Pavone
+                        </a>
+                        <br>Nvidia Research<br>
+                        Stanford University
+                    </td>
+                    <td>
+                        <a style="text-decoration:none" href="https://yuewang.xyz/">
+                         Yue Wang
+                        </a>
+                        <br>Nvidia Research
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>   
+    </div>
+    <div>
+      <h2 class="text-center" style="margin-top: 25px;">
+        Comparisons
+      </h2>
+      <hr class="divider" />
+      <div class="container" style="max-width: 868px;">
+        <div class="row">
+            <div class="col-md-12">
+              1. Chrome is strongly recommended for viewing the videos. <br>
+              2. Consider refreshing the page if the videos are not playing or playing asynchronously. <br><br>
+            </div>
+        </div>
+      <h4>
+        LLFF Dataset with 3 Input Views
+      </h4>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n3flower.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n3flower.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n3flower.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n3flower_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n3flower_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n3flower_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <h4 style="margin-top: 50px;">
+        DTU Dataset with 3 Input Views
+      </h4>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n3scan21.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n3scan21.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n3scan21.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n3scan21_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n3scan21_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n3scan21_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n3scan55.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n3scan55.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n3scan55.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n3scan55_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n3scan55_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n3scan55_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <h4 style="margin-top: 50px;">
+        LLFF Dataset with 6 Input Views
+      </h4>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n6trex.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n6trex.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n6trex.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n6trex_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n6trex_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n6trex_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <h4 style="margin-top: 50px;">
+        DTU Dataset with 6 Input Views
+      </h4>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n6scan40.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n6scan40.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n6scan40.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n6scan40_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n6scan40_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n6scan40_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n6scan103.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n6scan103.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n6scan103.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n6scan103_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n6scan103_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n6scan103_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <h4 style="margin-top: 50px;">
+        LLFF Dataset with 9 Input Views
+      </h4>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n9room.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n9room.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n9room.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n9room_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n9room_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n9room_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <h4 style="margin-top: 50px;">
+        DTU Dataset with 9 Input Views
+      </h4>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n9scan110.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n9scan110.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n9scan110.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n9scan110_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n9scan110_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n9scan110_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n9scan114.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n9scan114.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours RGB</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n9scan114.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="max-width: 868px;">
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>mipNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/mipnerf/n9scan114_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>RegNeRF depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/regnerf/n9scan114_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+        <div class="col-md-4 col-sm-4 col-xs-12 gallery center-block text-center">
+          <span>Ours depth median</span>
+          <div class="embed-responsive embed-responsive-4by3">
+            <video controls loop muted autoplay class="embed-responsive-item">
+              <source src="assets/videos/comparisons/ours/n9scan114_depth_median.mp4" type="video/mp4">
+            </video>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+    <div class="container" style="max-width: 868px;">
+      <br><br>
+      <a href="index.html">&larr; Return to main page.</a>
+    </div>
+    
+	<hr class="divider" />
+  <div class="container" style="max-width: 868px;">
+      <div class="row">
+          <div class="col-md-12">
+              <h2>Citation</h2>
+              Consider citing us if you find this project is helpful. <br>
+              <code>
+                  @InProceedings{yang2022freenerf,<br>
+                  &nbsp; author = {Jiawei Yang and Marco Pavone and Yue Wang},<br>
+                  &nbsp; title  = {FreeNeRF: Improving Few-shot Neural Rendering with Free Frequency Regularization},<br>
+                  &nbsp; booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (CVPR)},<br>
+                    &nbsp; year = {2023},<br>
+              }</code></div>
+      </div>
+  </div>
+
+  <hr class="divider" />
+    <div class="container" style="max-width: 868px;">
+    <div class="row">
+        <div class="col-md-12">
+        <h2>Acknowledgement</h2>
+        <p>This webpage integrates components from many websites, including <a href="https://dorverbin.github.io/refnerf/">RefNeRF</a>, <a href="https://m-niemeyer.github.io/regnerf/">RegNeRF</a>, <a href="https://dreamfusion3d.github.io/">DreamFusion</a>, and <a href="https://richzhang.github.io/webpage-template/">Richard Zhang's template</a>.
+            We sincerely thank the authors for their great work and websites.</p>
+        <br></p>
+        </div>
+      </div>
+  </div>
+  <!-- Optional JavaScript -->
+  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+    integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+    integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+    integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>
