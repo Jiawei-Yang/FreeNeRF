@@ -1,0 +1,31 @@
+
+Config.expname = "myexp"
+Config.checkpoint_dir = "out/myexp"
+Config.llff_scan = "horns"
+
+# basic configs
+Config.data_dir = "data/nerf_data/nerf_llff_data"
+Config.dataset_loader = 'llff'
+Config.white_background = False
+Config.near = 0
+Config.far = 1
+Config.factor = 8
+Config.render_factor = 8
+MipNerfModel.ray_shape = 'cylinder'
+MLP.density_noise = 1.
+
+# num_views dependent config
+Config.n_input_views = 100
+Config.max_steps = 500000
+Config.project = "llff3"
+
+
+# use trick or not
+Config.freq_reg = False
+Config.freq_reg_end = 0
+
+Config.occ_reg_loss_mult = 0.0
+Config.occ_wb_prior = False
+
+
+

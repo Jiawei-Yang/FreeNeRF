@@ -1,0 +1,39 @@
+
+Config.expname = "myexp"
+Config.checkpoint_dir = "out/myexp"
+Config.dtu_scan = "scan21"
+
+# basic configs
+Config.data_dir = "data/Rectified/images"
+Config.dtu_mask_path = "data/Rectified/mask"
+Config.dataset_loader = 'dtu'
+Config.white_background = False
+Config.near = 0.5
+Config.far = 3.5
+Config.factor = 4
+Config.render_factor = 4
+MLP.density_noise = 1.
+
+# default with regnerf's learning rate setting
+Config.lr_init = 0.002
+Config.lr_final = 0.00002
+Config.lr_delay_steps = 512
+Config.lr_delay_mult = 0.01
+Config.grad_max_norm = 0.1
+Config.grad_max_val = 0.1
+
+
+# num_views dependent config
+Config.n_input_views = 6
+Config.max_steps = 87891
+Config.project = "dtu6"
+
+
+# use trick or not
+Config.freq_reg = True
+Config.freq_reg_end = 17578  # int(0.2 * Config.max_steps)
+
+Config.occ_reg_loss_mult = 0.01
+Config.occ_wb_prior = True
+# regnerf techniques
+## does not use regnerf techniques

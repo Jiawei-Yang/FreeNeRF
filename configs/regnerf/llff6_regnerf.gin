@@ -1,0 +1,48 @@
+
+Config.expname = "myexp"
+Config.checkpoint_dir = "out/myexp"
+Config.llff_scan = "horns"
+
+# basic configs
+Config.data_dir = "data/nerf_data/nerf_llff_data"
+Config.dataset_loader = 'llff'
+Config.white_background = False
+Config.near = 0
+Config.far = 1
+Config.factor = 8
+Config.render_factor = 8
+MipNerfModel.ray_shape = 'cylinder'
+MLP.density_noise = 1.
+
+# use trick or not
+Config.freq_reg = False
+Config.freq_reg_end = 0
+
+Config.occ_reg_loss_mult = 0.0
+Config.occ_wb_prior = False
+
+# num_views dependent config
+Config.n_input_views = 6
+Config.max_steps = 139535
+Config.project = "llff3"
+
+# regnerf originals
+Config.lr_init = 0.002
+Config.lr_final = 0.00002
+Config.lr_delay_steps = 512
+Config.lr_delay_mult = 0.01
+Config.grad_max_norm = 0.1
+Config.grad_max_val = 0.1
+
+Config.anneal_nearfar = True
+Config.anneal_nearfar_steps = 512
+Config.anneal_nearfar_perc = 0.0001
+Config.anneal_mid_perc = 1.0
+
+Config.depth_tvnorm_loss_mult = 0.1
+Config.depth_tvnorm_decay = True
+Config.depth_tvnorm_maxstep = 512
+Config.depth_tvnorm_loss_mult_start = 400.0
+Config.depth_tvnorm_loss_mult_end = 0.1
+
+Config.flow_loss_mult = 0.0
