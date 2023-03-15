@@ -31,7 +31,7 @@ Config.project = "dtu9"
 
 # use trick or not
 Config.freq_reg = True
-Config.freq_reg_end = 65918  # int(0.2 * Config.max_steps)
+Config.freq_reg_end = 65918  # int(0.5 * Config.max_steps)
 
 Config.occ_reg_loss_mult = 0.01
 Config.occ_wb_prior = True

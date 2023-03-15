@@ -31,7 +31,7 @@ Config.project = "llff6"
 
 # use trick or not
 Config.freq_reg = True
-Config.freq_reg_end = 69767 # int(0.2 * Config.max_steps)
+Config.freq_reg_end = 97675 # int(0.7 * Config.max_steps)
 
 Config.occ_reg_loss_mult = 0.01
 Config.occ_reg_range = 20
