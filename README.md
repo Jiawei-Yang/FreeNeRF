@@ -1,9 +1,9 @@
 # [CVPR23] FreeNeRF: Improving Few-shot Neural Rendering with Free Frequency Regularization
 
-## [Project Page](https://jiawei-yang.github.io/FreeNeRF/) | [Paper](TBA)
+## [Project Page](https://jiawei-yang.github.io/FreeNeRF/) | [Paper](https://arxiv.org/abs/2303.07418)
 
 This repository contains the code release for the CVPR 2023 project
-> [**FreeNeRF: Improving Few-shot Neural Rendering with Free Frequency Regularization**](TBA),  
+> [**FreeNeRF: Improving Few-shot Neural Rendering with Free Frequency Regularization**](https://arxiv.org/abs/2303.07418),  
 > Jiawei Yang, Marco Pavone, and Yue Wang   
 > Computer Vision and Pattern Recognition (CVPR), 2023
 
