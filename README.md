@@ -44,7 +44,7 @@ Please follow RegNeRF's [data preparation instructions](https://github.com/googl
 
 ### Training an new model
 
-For training a new model from scratch, you need to first need to define your CUDA devices. For example, when having access to 8 GPUs, you can run
+For training a new model from scratch, you need to first need to define your CUDA devices. For example, when having access to 4 GPUs, you can run
 
 ```export CUDA_VISIBLE_DEVICES=0,1,2,3```
 
@@ -54,7 +54,7 @@ and then you can start the training process by calling
 
 where you replace `{CONFIG}` with the config you want to use. 
 
-We provide the config files for FreeNeRF, RegNeRF, and our direct baseline mipNeRF in the `configs` folder.In the config files, you might need to adjust the `Config.data_dir` argument pointing to your dataset location. For the DTU dataset, you might further need to adjust the `Config.dtu_mask_path` argument. The `*_bl.gin` configs are the mip-NeRF baseline configurations.
+We provide the config files for FreeNeRF, RegNeRF, and our direct baseline mipNeRF in the `configs` folder. In the config files, you might need to adjust the `Config.data_dir` argument pointing to your dataset location. For the DTU dataset, you might further need to adjust the `Config.dtu_mask_path` argument.
 
 We provide the `wandb` interface for logging. You might need to install `wandb` and change the the wandb settings in `inter/configs.py` to fit your own wandb account. 
 ### Rendering test images
@@ -69,7 +69,7 @@ where you replace `{CONFIG}` with the config you want to use. Similarly, you can
 
 ## Reproducing the results
 
-Our results are obtained on 4 NVIDIA A40 GPUs. The results can be slightly different across different runs due to the randomness in the training process. For example, in the DTU dataset, we can obtain a PSNR of 20.21 dB under the 3-shot setting, compared to 19.92 dB in the paper.
+Our results are obtained on 4 NVIDIA A40 GPUs. The results can be slightly different across different runs due to the randomness in the training process. For example, in the DTU dataset, we can obtain a PSNR as high as 20.21 dB under the 3-shot setting, compared to 19.92 dB in the paper.
 
 - [ ] We will release the pre-trained models soon.
 
