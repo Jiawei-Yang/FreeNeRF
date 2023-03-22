@@ -37,3 +37,4 @@ Config.occ_reg_loss_mult = 0.01
 Config.occ_wb_prior = True
 # regnerf techniques
 ## does not use regnerf techniques
+Config.load_random_rays = False

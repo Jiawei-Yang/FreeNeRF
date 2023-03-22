@@ -36,3 +36,5 @@ Config.freq_reg_end = 104651 # int(0.5 * Config.max_steps)
 Config.occ_reg_loss_mult = 0.01
 Config.occ_reg_range = 20
 Config.occ_wb_prior = False
+
+Config.load_random_rays = False

@@ -35,5 +35,5 @@ Config.freq_reg_end = 0
 Config.occ_reg_loss_mult = 0.0
 Config.occ_wb_prior = False
 
-
+Config.load_random_rays = False
 
