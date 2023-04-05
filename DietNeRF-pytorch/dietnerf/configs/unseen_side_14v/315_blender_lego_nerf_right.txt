@@ -1,0 +1,27 @@
+expname = 315_blender_lego_right_nerf
+datadir = ./data/nerf_synthetic/lego
+basedir = ./logs
+dataset_type = blender
+no_batching = True
+use_viewdirs = True
+white_bkgd = True
+lrate_decay = 500
+N_samples = 64
+N_importance = 128
+N_rand = 1024
+precrop_iters = 500
+precrop_frac = 0.5
+half_res = True
+
+## Additional arguments
+i_log_raw_hist = 50
+i_video = 6250
+save_splits = True
+checkpoint_rendering = False
+
+## Computational options relevant for rendering
+pixel_interp_mode = bilinear
+feature_interp_mode = bilinear
+
+## views
+hardcode_train_views = [2, 5, 8, 9, 10, 16, 34, 35, 40, 52, 53, 54, 58, 60]

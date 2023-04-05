@@ -1,0 +1,24 @@
+expname = 312_blender_lego_8views_tune
+datadir = ./data/nerf_synthetic/lego
+basedir = ./logs
+dataset_type = blender
+no_batching = True
+use_viewdirs = True
+white_bkgd = True
+lrate_decay = 500
+N_rand = 1024
+precrop_iters = 500
+precrop_frac = 0.5
+half_res = True
+
+## Additional arguments
+max_train_views = 8
+i_log_raw_hist = 50
+i_video = 6250
+save_splits = True
+
+## tuning arguments
+lrate = 5e-5  # order of magnitude lower
+multires = 6
+N_samples = 128
+N_importance = 0

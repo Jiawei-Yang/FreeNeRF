@@ -1,0 +1,25 @@
+expname = 330_blender_chair_8views_simple
+datadir = ./data/nerf_synthetic/chair
+basedir = ./logs
+dataset_type = blender
+no_batching = True
+white_bkgd = True
+lrate_decay = 500
+N_samples = 64
+N_importance = 128
+N_rand = 1024
+precrop_iters = 500
+precrop_frac = 0.5
+half_res = True
+
+## Additional arguments
+max_train_views = 8
+i_log_raw_hist = 50
+i_video = 6250
+save_splits = True
+
+lrate = 5e-5  # order of magnitude lower
+multires = 6
+N_samples = 128
+N_importance = 0
+# removed use_viewdirs from above

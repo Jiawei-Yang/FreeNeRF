@@ -1,0 +1,27 @@
+expname = 347_blender_materials_8views_simpler
+datadir = ./data/nerf_synthetic/materials
+basedir = ./logs
+dataset_type = blender
+no_batching = True
+white_bkgd = True
+lrate_decay = 500
+N_samples = 64
+N_importance = 128
+N_rand = 1024
+precrop_iters = 500
+precrop_frac = 0.5
+half_res = True
+
+## Additional arguments
+max_train_views = 8
+i_log_raw_hist = 50
+i_video = 6250
+save_splits = True
+checkpoint_rendering = True
+render_autocast = False
+
+lrate = 1e-5  # 50x lower
+multires = 6
+N_samples = 128
+N_importance = 0
+# removed use_viewdirs from above

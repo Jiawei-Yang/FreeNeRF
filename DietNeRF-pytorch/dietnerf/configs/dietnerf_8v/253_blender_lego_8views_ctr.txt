@@ -1,0 +1,42 @@
+expname = 253_blender_lego_8views_ctr
+datadir = ./data/nerf_synthetic/lego
+basedir = ./logs
+dataset_type = blender
+no_batching = True
+use_viewdirs = True
+white_bkgd = True
+lrate_decay = 500
+N_samples = 64
+N_importance = 128
+N_rand = 1024
+precrop_iters = 500
+precrop_frac = 0.5
+half_res = True
+
+## Additional arguments
+max_train_views = 8
+i_log_raw_hist = 50
+i_video = 6250
+save_splits = True
+checkpoint_rendering = True
+## Computational options relevant for rendering
+pixel_interp_mode = bilinear
+feature_interp_mode = bilinear
+checkpoint_rendering = True
+
+## Shared rendering loss options
+render_loss_interval = 10
+render_nH = 168
+render_nW = 168
+render_jitter_rays = True
+render_poses = uniform
+render_theta_range = [-180, 180]
+render_phi_range = [-90, 0]
+render_radius_range = [3.5, 4.5]
+
+## Consistency loss options
+consistency_loss = consistent_with_target_rep
+consistency_loss_lam = 0.1
+consistency_loss_lam0 = 0.1
+consistency_model_type = clip_vit
+consistency_size = 224
