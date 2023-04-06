@@ -1,9 +1,9 @@
-from lpips import LPIPS
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from skimage.measure import compare_ssim, compare_psnr
+from lpips import LPIPS
+from skimage.measure import compare_psnr, compare_ssim
 
 # Misc
 img2mse = lambda x, y : torch.mean((x - y) ** 2)
