@@ -17,17 +17,83 @@
 import functools
 from os import path
 import time
+import os
 
 from absl import app
 import flax
 from flax.training import checkpoints
-from internal import configs, datasets, models, utils  # pylint: disable=g-multiple-import
+from internal import configs, math, datasets, models, utils  # pylint: disable=g-multiple-import
 import jax
 from jax import random
+import jax.numpy as jnp
+import glob 
+import numpy as np
+import mediapy as media
+from matplotlib import cm
 
 configs.define_common_flags()
 jax.config.parse_flags_with_absl()
 
+
+
+def create_videos(config, base_dir, out_dir, out_name, num_frames):
+  """Creates videos out of the images saved to disk.
+  Credits to: https://github.com/google-research/multinerf/blob/main/render.py
+  """
+  names = [n for n in config.checkpoint_dir.split('/') if n]
+  # Last two parts of checkpoint path are experiment name and scene name.
+  exp_name, scene_name = names[-2:]
+  video_prefix = f'{scene_name}_{exp_name}_{out_name}'
+
+  zpad = max(3, len(str(num_frames - 1)))
+  idx_to_str = lambda idx: str(idx).zfill(zpad)
+
+  # utils.makedirs(base_dir, exist_ok=True)
+  depth_curve_fn = lambda x: -jnp.log(x + jnp.finfo(jnp.float32).eps)
+
+  # Load one example frame to get image shape and depth range.
+  depth_file = os.path.join(out_dir, f'distance_mean_{idx_to_str(0)}.tiff')
+  depth_frame = utils.load_img(depth_file)
+  shape = depth_frame.shape
+  p = 0.5
+  distance_limits = np.percentile(depth_frame.flatten(), [p, 100 - p])
+  lo, hi = [depth_curve_fn(x) for x in distance_limits]
+  print(f'Video shape is {shape[:2]}')
+
+  video_kwargs = {
+      'shape': shape[:2],
+      'codec': 'h264',
+      'fps': 60,
+      'crf': 18,
+  }
+
+  for k in ['color', 'normals', 'acc', 'distance_mean', 'distance_median']:
+    video_file = os.path.join(base_dir, f'{video_prefix}_{k}.mp4')
+    input_format = 'gray' if k == 'acc' else 'rgb'
+    file_ext = 'png' if k in ['color', 'normals'] else 'tiff'
+    idx = 0
+    file0 = os.path.join(out_dir, f'{k}_{idx_to_str(0)}.{file_ext}')
+    if not utils.file_exists(file0):
+      print(f'Images missing for tag {k}')
+      continue
+    print(f'Making video {video_file}...')
+    with media.VideoWriter(
+        video_file, **video_kwargs, input_format=input_format) as writer:
+      for idx in range(num_frames):
+        img_file = os.path.join(out_dir, f'{k}_{idx_to_str(idx)}.{file_ext}')
+        if not utils.file_exists(img_file):
+          ValueError(f'Image file {img_file} does not exist.')
+        img = utils.load_img(img_file)
+        if k in ['color', 'normals']:
+          img = img / 255.
+        elif k.startswith('distance'):
+          img = depth_curve_fn(img)
+          img = np.clip((img - np.minimum(lo, hi)) / np.abs(hi - lo), 0, 1)
+          img = cm.get_cmap('turbo')(img)[..., :3]
+
+        frame = (np.clip(np.nan_to_num(img), 0., 1.) * 255.).astype(np.uint8)
+        writer.add_image(frame)
+        idx += 1
 
 def main(unused_argv):
 
@@ -72,26 +138,6 @@ def main(unused_argv):
                  'scan114': [0.96940583, 1.548706]}
     lo, hi = eval_dict[config.dtu_scan]
 
-  # Rendering is forced to be deterministic even if training was randomized, as
-  # this eliminates 'speckle' artifacts.
-  def render_eval_fn(variables, _, rays):
-    return jax.lax.all_gather(
-        model.apply(
-            variables,
-            None,  # Deterministic.
-            rays,
-            resample_padding=config.resample_padding_final,
-            compute_extras=True),
-        axis_name='batch')
-
-  # pmap over only the data input.
-  render_eval_pfn = jax.pmap(
-      render_eval_fn,
-      in_axes=(None, None, 0),
-      donate_argnums=2,
-      axis_name='batch',
-  )
-
   path_fn = lambda x: path.join(out_dir, x)
 
   # Fix for loading pre-trained models.
@@ -117,6 +163,39 @@ def main(unused_argv):
   step = int(state.optimizer.state.step)
   print(f'Rendering checkpoint at step {step}.')
 
+  # --- FreeNeRF add-ons --- #
+  if config.freq_reg:
+    # Compute frequency regularization masks for the current step.
+    freq_reg_mask = (
+      math.get_freq_reg_mask(99, step, config.freq_reg_end, config.max_vis_freq_ratio),
+      math.get_freq_reg_mask(27, step, config.freq_reg_end, config.max_vis_freq_ratio))
+    def render_eval_fn(variables, _, rays):
+      return jax.lax.all_gather(
+          model.apply(
+              variables,
+              None,  # Deterministic.
+              rays,
+              resample_padding=config.resample_padding_final,
+              compute_extras=True,
+              freq_reg_mask=freq_reg_mask)[0], axis_name='batch')
+  else:
+    def render_eval_fn(variables, _, rays):
+      return jax.lax.all_gather(
+          model.apply(
+              variables,
+              None,  # Deterministic.
+              rays,
+              resample_padding=config.resample_padding_final,
+              compute_extras=True)[0], axis_name='batch')
+  # pmap over only the data input.
+  render_eval_pfn = jax.pmap(
+      render_eval_fn,
+      in_axes=(None, None, 0),
+      donate_argnums=2,
+      axis_name='batch',
+  )
+  # --- FreeNeRF add-ons --- #
+  
   out_name = 'path_renders' if config.render_path else 'test_preds'
   out_name = f'{out_name}_step_{step}'
   base_dir = config.render_dir
@@ -141,18 +220,28 @@ def main(unused_argv):
       continue
 
     utils.save_img_u8(rendering['rgb'], path_fn(f'color_{idx:03d}.png'))
-    time.sleep(3)
+    # time.sleep(3)
     utils.save_img_u8(rendering['normals'] / 2. + 0.5,
                       path_fn(f'normals_{idx:03d}.png'))
-    time.sleep(3)
+    # time.sleep(3)
     utils.save_img_f32(rendering['distance_mean'],
                        path_fn(f'distance_mean_{idx:03d}.tiff'))
-    time.sleep(3)
+    # time.sleep(3)
     utils.save_img_f32(rendering['distance_median'],
                        path_fn(f'distance_median_{idx:03d}.tiff'))
-    time.sleep(3)
+    # time.sleep(3)
     utils.save_img_f32(rendering['acc'], path_fn(f'acc_{idx:03d}.tiff'))
 
+  ## ---- Create videos ---- ##
+  num_files = len(glob.glob(path_fn('acc_*.tiff')))
+  time.sleep(10)
+  if jax.host_id() == 0 and num_files == dataset.size:
+    print(f'All files found, creating videos.')
+    create_videos(config, base_dir, out_dir, out_name, dataset.size)
 
+  # A hack that forces Jax to keep all TPUs alive until every TPU is finished.
+  x = jax.numpy.ones([jax.local_device_count()])
+  x = jax.device_get(jax.pmap(lambda x: jax.lax.psum(x, 'i'), 'i')(x))
+  print(x)
 if __name__ == '__main__':
   app.run(main)

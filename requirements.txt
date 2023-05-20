@@ -10,3 +10,4 @@ dm-pix==0.3.0
 tqdm
 wandb
 lpips
+mediapy==1.0.0

@@ -57,6 +57,14 @@ where you replace `{CONFIG}` with the config you want to use.
 We provide the config files for FreeNeRF, RegNeRF, and our direct baseline mipNeRF in the `configs` folder. In the config files, you might need to adjust the `Config.data_dir` argument pointing to your dataset location. For the DTU dataset, you might further need to adjust the `Config.dtu_mask_path` argument.
 
 We provide the `wandb` interface for logging. You might need to install `wandb` and change the the wandb settings in `inter/configs.py` to fit your own wandb account. 
+
+----
+Alternatively, we provide some sample scripts for training our models in the `sample_scripts` folder. For example, you can run
+
+```bash sample_scripts/train_eval_dtu.sh freenerf 3 30```
+where `freenerf` is the method name, `3` is the number of shots, and `30` is the scan ID. Please refer to the `sample_scripts` folder for more details.
+
+
 ### Rendering test images
 
 You can render and evaluate test images by running
