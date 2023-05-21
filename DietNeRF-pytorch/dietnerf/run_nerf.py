@@ -17,10 +17,9 @@ from tqdm import tqdm, trange
 import wandb
 
 import geometry
-from load_llff import load_llff_data
-from load_deepvoxels import load_dv_data
 from load_blender import load_blender_data, pose_spherical_uniform
 from run_nerf_helpers import *
+from utils import get_freq_mask
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -38,22 +37,29 @@ def batchify(fn, chunk):
         return torch.cat([fn(inputs[i:i+chunk]) for i in range(0, inputs.shape[0], chunk)], 0)
     return ret
 
-
-def run_network(inputs, viewdirs, fn, embed_fn, embeddirs_fn, netchunk=1024*64):
+def run_network(inputs, viewdirs, fn, embed_fn, embeddirs_fn, netchunk=1024*64,
+                current_iter=None, reg_end_iter=None):
     """Prepares inputs and applies network 'fn'.
     """
     inputs_flat = torch.reshape(inputs, [-1, inputs.shape[-1]])
     embedded = embed_fn(inputs_flat)
+    coord_freq_mask = torch.ones(1).cuda().float()
+    if current_iter is not None and reg_end_iter is not None:
+        coord_freq_mask = get_freq_mask(embedded.shape, current_iter, reg_end_iter)
+        embedded = embedded * coord_freq_mask
 
     if viewdirs is not None:
         input_dirs = viewdirs[:,None].expand(inputs.shape)
         input_dirs_flat = torch.reshape(input_dirs, [-1, input_dirs.shape[-1]])
         embedded_dirs = embeddirs_fn(input_dirs_flat)
+        if current_iter is not None and reg_end_iter is not None:
+            view_freq_mask = get_freq_mask(embedded_dirs.shape, current_iter, reg_end_iter)
+            embedded_dirs = embedded_dirs * view_freq_mask
         embedded = torch.cat([embedded, embedded_dirs], -1)
 
     outputs_flat = batchify(fn, netchunk)(embedded)
     outputs = torch.reshape(outputs_flat, list(inputs.shape[:-1]) + [outputs_flat.shape[-1]])
-    return outputs
+    return outputs, 1 - coord_freq_mask.mean().item()
 
 
 def batchify_rays(rays_flat, chunk=1024*32, keep_keys=None, **kwargs):
@@ -64,6 +70,8 @@ def batchify_rays(rays_flat, chunk=1024*32, keep_keys=None, **kwargs):
     for i in range(0, rays_flat.shape[0], chunk):
         ret = render_rays(rays_flat[i:i+chunk], **kwargs)
         for k in ret:
+            if k == 'masking_ratio':
+                continue
             if keep_keys and k not in keep_keys:
                 # Don't save this returned value to save memory
                 continue
@@ -72,6 +80,7 @@ def batchify_rays(rays_flat, chunk=1024*32, keep_keys=None, **kwargs):
             all_ret[k].append(ret[k])
 
     all_ret = {k : torch.cat(all_ret[k], 0) for k in all_ret}
+    all_ret['masking_ratio'] = ret['masking_ratio']
     return all_ret
 
 
@@ -135,6 +144,8 @@ def render(H, W, focal, chunk=1024*32, rays=None, c2w=None, ndc=True,
     # Render and reshape
     all_ret = batchify_rays(rays, chunk, keep_keys=keep_keys, **kwargs)
     for k in all_ret:
+        if k == 'masking_ratio':
+            continue
         k_sh = list(sh[:-1]) + list(all_ret[k].shape[1:])
         all_ret[k] = torch.reshape(all_ret[k], k_sh)
 
@@ -143,7 +154,7 @@ def render(H, W, focal, chunk=1024*32, rays=None, c2w=None, ndc=True,
         k_extract = [k for k in k_extract if k in keep_keys]
     ret_list = [all_ret[k] for k in k_extract]
     ret_dict = {k : all_ret[k] for k in all_ret}
-    return ret_list + [ret_dict]
+    return ret_list + [ret_dict] + [all_ret['masking_ratio']]
 
 
 def render_path(render_poses, hwf, chunk, render_kwargs, gt_imgs=None, savedir=None, render_factor=0):
@@ -161,9 +172,7 @@ def render_path(render_poses, hwf, chunk, render_kwargs, gt_imgs=None, savedir=N
 
     t = time.time()
     for i, c2w in enumerate(tqdm(render_poses)):
-        print(i, time.time() - t)
-        t = time.time()
-        rgb, disp, acc, _ = render(H, W, focal, chunk=chunk, c2w=c2w[:3,:4], **render_kwargs)
+        rgb, disp, acc, _, _ = render(H, W, focal, chunk=chunk, c2w=c2w[:3,:4], **render_kwargs)
         rgbs.append(rgb.cpu().numpy())
         disps.append(disp.cpu().numpy())
         if i==0:
@@ -206,10 +215,12 @@ def create_nerf(args):
         model_fine = nn.DataParallel(model_fine).to(device)
         grad_vars += list(model_fine.parameters())
 
-    network_query_fn = lambda inputs, viewdirs, network_fn : run_network(inputs, viewdirs, network_fn,
+    network_query_fn = lambda inputs, viewdirs, network_fn, current_iter, reg_end_iter : run_network(inputs, viewdirs, network_fn,
                                                                 embed_fn=embed_fn,
                                                                 embeddirs_fn=embeddirs_fn,
-                                                                netchunk=args.netchunk_per_gpu*args.n_gpus)
+                                                                netchunk=args.netchunk_per_gpu*args.n_gpus,
+                                                                current_iter=current_iter,
+                                                                reg_end_iter=reg_end_iter)
 
     # Create optimizer
     optimizer = torch.optim.Adam(params=grad_vars, lr=args.lrate, betas=(0.9, 0.999))
@@ -257,7 +268,9 @@ def create_nerf(args):
         'use_viewdirs' : args.use_viewdirs,
         'white_bkgd' : args.white_bkgd,
         'raw_noise_std' : args.raw_noise_std,
-        'alpha_act_fn' : F.softplus if args.use_softplus_alpha else F.relu
+        'alpha_act_fn' : F.softplus if args.use_softplus_alpha else F.relu,
+        'current_iter' : None,
+        'reg_end_iter' : None,
     }
 
     # NDC only good for LLFF-style forward facing data
@@ -286,7 +299,8 @@ def raw2outputs(raw, z_vals, rays_d, raw_noise_std=0, white_bkgd=False, pytest=F
         weights: [num_rays, num_samples]. Weights assigned to each sampled color.
         depth_map: [num_rays]. Estimated distance to object.
     """
-    raw2alpha = lambda raw, dists: 1.-torch.exp(-alpha_act_fn(raw)*dists)
+    # raw2alpha = lambda raw, dists: 1.-torch.exp(-alpha_act_fn(raw)*dists)
+    density2alpha = lambda raw, dists: 1.-torch.exp(- density * dists)
 
     dists = z_vals[...,1:] - z_vals[...,:-1]
     dists = torch.cat([dists, torch.Tensor([1e10]).expand(dists[...,:1].shape)], -1)  # [N_rays, N_samples]
@@ -303,8 +317,10 @@ def raw2outputs(raw, z_vals, rays_d, raw_noise_std=0, white_bkgd=False, pytest=F
             np.random.seed(0)
             noise = np.random.rand(*list(raw[...,3].shape)) * raw_noise_std
             noise = torch.Tensor(noise)
-
-    alpha = raw2alpha(raw[...,3] + noise, dists)  # [N_rays, N_samples]
+    # output original density
+    density = alpha_act_fn(raw[...,3] + noise)  # [N_rays, N_samples]
+    alpha = density2alpha(density, dists)  # [N_rays, N_samples]
+    # alpha = raw2alpha(raw[...,3] + noise, dists)  # [N_rays, N_samples]
     weights = alpha * torch.cumprod(torch.cat([torch.ones((alpha.shape[0], 1)), 1.-alpha + 1e-10], -1), -1)[:, :-1]
     rgb_map = torch.sum(weights[...,None] * rgb, -2)  # [N_rays, 3]
 
@@ -315,13 +331,15 @@ def raw2outputs(raw, z_vals, rays_d, raw_noise_std=0, white_bkgd=False, pytest=F
     if white_bkgd:
         rgb_map = rgb_map + (1.-acc_map[...,None])
 
-    return rgb_map, disp_map, acc_map, weights, depth_map
+    return rgb_map, disp_map, acc_map, weights, depth_map, density
 
 
 def render_rays(ray_batch,
                 network_fn,
                 network_query_fn,
                 N_samples,
+                current_iter=None,
+                reg_end_iter=None,
                 retraw=False,
                 lindisp=False,
                 verbose=False,
@@ -395,9 +413,8 @@ def render_rays(ray_batch,
     pts = rays_o[...,None,:] + rays_d[...,None,:] * z_vals[...,:,None] # [N_rays, N_samples, 3]
 
 
-    raw = network_query_fn(pts, viewdirs, network_fn)
-    rgb_map, disp_map, acc_map, weights, depth_map = raw2outputs(raw, z_vals, rays_d, raw_noise_std, white_bkgd, pytest=pytest, alpha_act_fn=alpha_act_fn)
-
+    raw, masking_ratio = network_query_fn(pts, viewdirs, network_fn, current_iter, reg_end_iter)
+    rgb_map, disp_map, acc_map, weights, depth_map, density = raw2outputs(raw, z_vals, rays_d, raw_noise_std, white_bkgd, pytest=pytest, alpha_act_fn=alpha_act_fn)
     if N_importance > 0:
         pts0, raw0, rgb_map_0, disp_map_0, acc_map_0, weights0 = pts, raw, rgb_map, disp_map, acc_map, weights
 
@@ -409,14 +426,15 @@ def render_rays(ray_batch,
         pts = rays_o[...,None,:] + rays_d[...,None,:] * z_vals[...,:,None] # [N_rays, N_samples + N_importance, 3]
 
         run_fn = network_fn if network_fine is None else network_fine
-        raw = network_query_fn(pts, viewdirs, run_fn)
+        raw, _ = network_query_fn(pts, viewdirs, run_fn, current_iter, reg_end_iter)
 
-        rgb_map, disp_map, acc_map, weights, depth_map = raw2outputs(raw, z_vals, rays_d, raw_noise_std, white_bkgd, pytest=pytest, alpha_act_fn=alpha_act_fn)
+        rgb_map, disp_map, acc_map, weights, depth_map, density = raw2outputs(raw, z_vals, rays_d, raw_noise_std, white_bkgd, pytest=pytest, alpha_act_fn=alpha_act_fn)
 
     ret = {'rgb_map' : rgb_map}
     ret['disp_map'] = disp_map
     ret['acc_map'] = acc_map
     ret['weights'] = weights
+    ret['density'] = density
     ret['pts'] = pts
     if retraw:
         ret['raw'] = raw
@@ -433,6 +451,7 @@ def render_rays(ray_batch,
         if (torch.isnan(ret[k]).any() or torch.isinf(ret[k]).any()) and DEBUG:
             print(f"! [Numerical Error] {k} contains nan or inf.")
 
+    ret['masking_ratio'] = masking_ratio
     return ret
 
 
@@ -538,7 +557,6 @@ def make_wandb_image(tensor, preprocess='scale'):
 def make_wandb_histogram(tensor):
     return wandb.Histogram(tensor.detach().flatten().cpu().numpy())
 
-
 def config_parser():
     parser = configargparse.ArgumentParser()
     parser.add_argument('--config', is_config_file=True, 
@@ -549,6 +567,16 @@ def config_parser():
                         help='where to store ckpts and logs')
     parser.add_argument("--datadir", type=str, default='./data/llff/fern', 
                         help='input data directory')
+
+    ##--- FreeNerf add-ons ---##
+    parser.add_argument("--use_mask", action='store_true', 
+                        help='use trick or not')
+    parser.add_argument('--reg_end_ratio', type=float, default=0.9,
+                        help='warmup end iteration')
+    # occlusion regularization has little effect on the blender dataset.
+    parser.add_argument('--occ_reg_mult', type=float, default=0.0)
+    parser.add_argument('--near_range', type=int, default=20)
+    ## end ###
 
     # training options
     parser.add_argument("--netdepth", type=int, default=8, 
@@ -728,35 +756,7 @@ def train():
 
     # Load data
     print('dataset_type:', args.dataset_type)
-    if args.dataset_type == 'llff':
-        images, poses, bds, render_poses, i_test = load_llff_data(args.datadir, args.factor,
-                                                                  recenter=True, bd_factor=.75,
-                                                                  spherify=args.spherify)
-        hwf = poses[0,:3,-1]
-        poses = poses[:,:3,:4]
-        print('Loaded llff', images.shape, render_poses.shape, hwf, args.datadir)
-        if not isinstance(i_test, list):
-            i_test = [i_test]
-
-        if args.llffhold > 0:
-            print('Auto LLFF holdout,', args.llffhold)
-            i_test = np.arange(images.shape[0])[::args.llffhold]
-
-        i_val = i_test
-        i_train = np.array([i for i in np.arange(int(images.shape[0])) if
-                        (i not in i_test and i not in i_val)])
-
-        print('DEFINING BOUNDS')
-        if args.no_ndc:
-            near = np.ndarray.min(bds) * .9
-            far = np.ndarray.max(bds) * 1.
-            
-        else:
-            near = 0.
-            far = 1.
-        print('NEAR FAR', near, far)
-
-    elif args.dataset_type == 'blender':
+    if args.dataset_type == 'blender':
         images, poses, render_poses, hwf, i_split = load_blender_data(args.datadir, args.half_res, args.testskip, num_render_poses=args.num_render_poses)
         print('Loaded blender', images.shape, render_poses.shape, hwf, args.datadir)
         i_train, i_val, i_test = i_split
@@ -768,20 +768,6 @@ def train():
             images = images[...,:3]*images[...,-1:] + (1.-images[...,-1:])
         else:
             images = images[...,:3]
-
-    elif args.dataset_type == 'deepvoxels':
-
-        images, poses, render_poses, hwf, i_split = load_dv_data(scene=args.shape,
-                                                                 basedir=args.datadir,
-                                                                 testskip=args.testskip)
-
-        print('Loaded deepvoxels', images.shape, render_poses.shape, hwf, args.datadir)
-        i_train, i_val, i_test = i_split
-
-        hemi_R = np.mean(np.linalg.norm(poses[:,:3,-1], axis=-1))
-        near = hemi_R-1.
-        far = hemi_R+1.
-
     else:
         print('Unknown dataset type', args.dataset_type, 'exiting')
         return
@@ -845,6 +831,7 @@ def train():
     bds_dict = {
         'near' : near,
         'far' : far,
+        'reg_end_iter' : int(args.reg_end_ratio * args.N_iters)
     }
     render_kwargs_train.update(bds_dict)
     render_kwargs_test.update(bds_dict)
@@ -866,11 +853,9 @@ def train():
             testsavedir = os.path.join(basedir, expname, 'renderonly_{}_{:06d}'.format('test' if args.render_test else 'path', start))
             os.makedirs(testsavedir, exist_ok=True)
             print('test poses shape', render_poses.shape)
-
             rgbs, _ = render_path(render_poses, hwf, args.chunk, render_kwargs_test, gt_imgs=images, savedir=testsavedir, render_factor=args.render_factor)
             print('Done rendering', testsavedir)
             imageio.mimwrite(os.path.join(testsavedir, 'video.mp4'), to8b(rgbs), fps=30, quality=8)
-
             if args.render_test:
                 # Compute metrics
                 mse, psnr, ssim, lpips = get_perceptual_metrics(rgbs, images, device=device)
@@ -949,6 +934,13 @@ def train():
  
     start = start + 1
     for i in trange(start, N_iters):
+        if args.use_mask:
+            render_kwargs_train['current_iter'] = i
+            render_kwargs_test['current_iter'] = i
+        else:
+            # set to None to disable trick
+            render_kwargs_train['current_iter'] = None
+            render_kwargs_test['current_iter'] = None
         metrics = {}
 
         # Sample random ray batch
@@ -1011,7 +1003,7 @@ def train():
                 extras = render(H, W, focal, chunk=args.chunk,
                                 rays=(rays[0].to(device), rays[1].to(device)),
                                 keep_keys=consistency_keep_keys,
-                                **render_kwargs_train)[-1]
+                                **render_kwargs_train)[-2]
                 # rgb0 is the rendering from the coarse network, while rgb_map uses the fine network
                 if args.N_importance > 0:
                     rgbs = torch.stack([extras['rgb_map'], extras['rgb0']], dim=0)
@@ -1071,13 +1063,19 @@ def train():
 
         if not args.no_mse:
             # Standard NeRF MSE loss with subsampled rays
-            rgb, disp, acc, extras = render(H, W, focal, chunk=args.chunk, rays=batch_rays,
+            rgb, disp, acc, extras, masking_ratio = render(H, W, focal, chunk=args.chunk, rays=batch_rays,
                                             verbose=i < 10, retraw=True,
                                             **render_kwargs_train)
             img_loss = img2mse(rgb, target_s)
             trans = extras['raw'][...,-1]
             loss = loss + img_loss
             psnr = mse2psnr(img_loss)
+            if args.occ_reg_mult > 0:
+                density = extras['density']
+                density_mask = torch.zeros_like(density)
+                density_mask[:, :args.near_range] = 1
+                blocker_loss = torch.mean(density * density_mask)
+                loss = loss + blocker_loss * args.occ_reg_mult
 
             if 'rgb0' in extras:
                 if i == start:
@@ -1132,7 +1130,7 @@ def train():
             print('Saved test set')
 
         if i%args.i_print==0:
-            tqdm.write(f"[TRAIN] Iter: {i} Loss: {loss.item()}  PSNR: {psnr.item()}")
+            tqdm.write(f"[TRAIN] Iter: {i} Loss: {loss.item()}  PSNR: {psnr.item()} Masking Ratio: {masking_ratio}")
 
         # Log scalars, images and histograms to wandb
         if i%args.i_log==0:
@@ -1161,7 +1159,7 @@ def train():
                 img_i = i_val[0]
                 target = images[img_i]
                 pose = poses[img_i, :3,:4].to(device)
-                rgb, disp, acc, extras = render(H, W, focal, chunk=args.chunk, c2w=pose,
+                rgb, disp, acc, extras, masking_ratio = render(H, W, focal, chunk=args.chunk, c2w=pose,
                                                     **render_kwargs_test)
 
                 psnr = mse2psnr(img2mse(rgb, target))

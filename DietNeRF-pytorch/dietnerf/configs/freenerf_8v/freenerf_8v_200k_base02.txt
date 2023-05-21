@@ -24,6 +24,6 @@ N_iters = 200000
 
 ## mask
 use_mask = True
-blocker_loss_mult=0.01
+occ_reg_mult=0.01
 i_img=1000
 reg_end_ratio=0.2

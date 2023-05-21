@@ -1,10 +1,14 @@
-# Putting NeRF on a Diet: Semantically Consistent Few-Shot View Synthesis
-[Website](https://ajayj.com/dietnerf)  |  [ICCV paper](https://openaccess.thecvf.com/content/ICCV2021/html/Jain_Putting_NeRF_on_a_Diet_Semantically_Consistent_Few-Shot_View_Synthesis_ICCV_2021_paper.html)  |  [arXiv](https://arxiv.org/abs/2104.00677)  | [Twitter](https://twitter.com/ajayj_/status/1379475290154356738)
+# [CVPR23] FreeNeRF: Improving Few-shot Neural Rendering with Free Frequency Regularization
 
-![Diagram overviewing DietNeRF's training procedure](https://d33wubrfki0l68.cloudfront.net/360965d431284b958d86082f9b49d53a0356b632/85d1a/dietnerf/assets/img/dietnerf_method_anim_50p.gif)
+## [Project Page](https://jiawei-yang.github.io/FreeNeRF/) | [Paper](https://arxiv.org/abs/2303.07418)
 
-This repository contains the official implementation of DietNeRF, a system that reconstructs 3D scenes from a few posed photos.
+This repository contains the code release for the CVPR 2023 project
+> [**FreeNeRF: Improving Few-shot Neural Rendering with Free Frequency Regularization**](https://arxiv.org/abs/2303.07418),  
+> Jiawei Yang, Marco Pavone, and Yue Wang   
+> Computer Vision and Pattern Recognition (CVPR), 2023
 
+
+This code is based on [DietNeRF implementation](https://github.com/ajayjain/DietNeRF). We provide some setup instructions below. For more details, please refer to the [DietNeRF README](https://github.com/ajayjain/DietNeRF/blob/master/README.md) for more details.
 ## Setup
 
 We use the following folder structure:
@@ -57,6 +61,11 @@ python dietnerf/scripts/bulk_shrink_images.py "dietnerf/data/nerf_synthetic/*/*/
 These images are used for FID/KID computation. The `dietnerf/run_nerf.py` training and evaluation code automatically shrinks images with the `--half_res` argument.
 
 Each experiment has a config file stored in `dietnerf/configs/`. Scripts in `dietnerf/scripts/` can be run to train and evaluate models.
+
+
+### Sample scripts from DietNeRF
+Below are sample commands to run experiments from DietNeRF:
+
 Run these scripts from `./dietnerf`.
 The scripts assume you are running one script at a time on a server with 8 NVIDIA GPUs.
 ```
@@ -76,11 +85,40 @@ sh scripts/run_synthetic_dietnerf_ft_8v.sh
 sh scripts/run_synthetic_unseen_side_14v.sh
 ```
 
-## Experiments on the DTU dataset
-Coming soon. Our paper also fine-tunes pixelNeRF on DTU scenes for 1-shot view synthesis.
+## Sample scripts for FreeNeRF
+```
+# train on a single GPU
+CUDA_VISIBLE_DEVICES=0 python run_nerf.py \
+    --config configs/freenerf_8v/freenerf_8v_50k_base05.txt \
+    --datadir data/nerf_synthetic/chair \
+    --expname chair_freenerf_reg0.5 
+
+# test on a single GPU
+CUDA_VISIBLE_DEVICES=0 python run_nerf.py \
+    --render_only \
+    --render_test \
+    --config configs/freenerf_8v/freenerf_8v_50k_base05.txt \
+    --datadir data/nerf_synthetic/chair \
+    --expname chair_freenerf_reg0.5
+```
+To change to other samples, change the `--datadir` and `--expname` accordingly, e.g., `--datadir data/nerf_synthetic/lego --expname lego_freenerf_reg0.5`.
+
+We found that training nerf for 50k iterations or less is sufficient for FreeNeRF to achieve good performance. Training 200k iterations will lead to similar performance but takes much longer time.
 
 ## Citation and acknowledgements
-If DietNeRF is relevant to your project, please cite our associated [paper](https://openaccess.thecvf.com/content/ICCV2021/html/Jain_Putting_NeRF_on_a_Diet_Semantically_Consistent_Few-Shot_View_Synthesis_ICCV_2021_paper.html):
+
+
+
+If you find our work useful, consider citing:
+```
+@InProceedings{Yang2023FreeNeRF,
+    author    = {Jiawei Yang and Marco Pavone and Yue Wang},},  
+    title     = {FreeNeRF: Improving Few-shot Neural Rendering with Free Frequency Regularization},
+    booktitle = {Proc. IEEE Conf. on Computer Vision and Pattern Recognition (CVPR)},
+    year      = {2023},
+}
+```
+
 ```
 @InProceedings{Jain_2021_ICCV,
     author    = {Jain, Ajay and Tancik, Matthew and Abbeel, Pieter},

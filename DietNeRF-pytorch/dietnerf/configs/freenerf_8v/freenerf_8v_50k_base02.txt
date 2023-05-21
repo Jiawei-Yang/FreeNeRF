@@ -14,7 +14,7 @@ precrop_frac = 0.5
 half_res = True
 
 ## Additional arguments
-wandb_project = dietnerf_8v_new
+wandb_project = freenerf
 max_train_views = 8
 i_log_raw_hist = 50
 i_video = 500000
@@ -24,6 +24,6 @@ N_iters = 50000
 
 ## mask
 use_mask = True
-blocker_loss_mult=0.01
+occ_reg_mult=0.01
 i_img=1000
 reg_end_ratio=0.2
