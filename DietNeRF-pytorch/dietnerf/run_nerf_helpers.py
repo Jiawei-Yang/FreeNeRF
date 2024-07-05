@@ -3,7 +3,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from lpips import LPIPS
-from skimage.measure import compare_psnr, compare_ssim
+from skimage.metrics import structural_similarity as compare_ssim
+from skimage.metrics import peak_signal_noise_ratio as compare_psnr
 
 # Misc
 img2mse = lambda x, y : torch.mean((x - y) ** 2)
