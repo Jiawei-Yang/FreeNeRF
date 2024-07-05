@@ -21,10 +21,10 @@ def get_perceptual_metrics(rgbs, gts, lpips_batch_size=8, device='cuda'):
 
     # From pixelNeRF https://github.com/sxyu/pixel-nerf/blob/2929708e90b246dbd0329ce2a128ef381bd8c25d/eval/calc_metrics.py#L188
     global lpips_vgg
-    ssim = [compare_ssim(rgb, gt, multichannel=True, data_range=1) for rgb, gt in zip(rgbs, gts)]
-    ssim = np.mean(ssim)
+    ssim = [compare_ssim(rgb, gt, multichannel=True, data_range=1, channel_axis=2) for rgb, gt in zip(rgbs, gts)]
+    ssim = np.mean(ssim).astype(np.float64)
     psnr = [compare_psnr(rgb, gt, data_range=1) for rgb, gt in zip(rgbs, gts)]
-    psnr = np.mean(psnr)
+    psnr = np.mean(psnr).astype(np.float64)
 
     # From pixelNeRF https://github.com/sxyu/pixel-nerf/blob/2929708e90b246dbd0329ce2a128ef381bd8c25d/eval/calc_metrics.py#L238
     if lpips_vgg is None:
