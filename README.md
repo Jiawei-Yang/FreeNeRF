@@ -79,7 +79,7 @@ where you replace `{CONFIG}` with the config you want to use. Similarly, you can
 
 Our results are obtained on 4 NVIDIA A40 GPUs. The results can be slightly different across different runs due to the randomness in the training process. For example, in the DTU dataset, we can obtain a PSNR as high as 20.21 dB under the 3-shot setting, compared to 19.92 dB in the paper.
 
-Please find the results and models in this [google drive](https://drive.google.com/drive/folders/1o1etILFbhZBGAmlBpVwlBL9WVAv2r1PZ?usp=sharing). Note that these results are reproduced versions and might not strictly be the same as those on our project page. In addition, we use the reg_end_ratio in the provided config files instead of the explicit reg_end iterations in this code.
+Please find the results and models in this [google drive](https://drive.google.com/drive/folders/1z0cPeVRJYkdFgvlz_75oYrbRsn59-SpA?usp=sharing). Note that these results are reproduced versions and might not strictly be the same as those on our project page. In addition, we use the reg_end_ratio in the provided config files instead of the explicit reg_end iterations in this code.
 
 - [X] We will release the pre-trained models soon.
 
